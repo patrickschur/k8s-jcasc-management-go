@@ -2,6 +2,8 @@ package yaml
 
 import (
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
+	"io/ioutil"
 	"strings"
 	"testing"
 )
@@ -100,4 +102,16 @@ func TestReadYamlAsMap(t *testing.T) {
 		assert.NotNil(t, jenkinsMap)
 		assert.Equal(t, "##K8S_MGMT_JENKINS_SYSTEM_MESSAGE##", jenkinsMap["systemMessage"])
 	}
+}
+
+func TestManipulate(t *testing.T) {
+	yamlContent, _ := ReadYamlAsMapFromFile("../../../projects/example-project/jcasc_config.yaml")
+	nodeContent, err := ReadYamlFileAsString("../../../templates/cloud-templates/node.yaml")
+	if err != nil {
+		t.Error(err)
+	}
+
+	yamlContent["jenkins"].(map[string]interface{})["clouds"].([]interface{})[0].(map[string]interface{})["kubernetes"].(map[string]interface{})["templates"] = append(yamlContent["jenkins"].(map[string]interface{})["clouds"].([]interface{})[0].(map[string]interface{})["kubernetes"].(map[string]interface{})["templates"].([]interface{}), nodeContent)
+	yamlAsString, _ := yaml.Marshal(yamlContent)
+	ioutil.WriteFile("../../../projects/example-project/new_jcasc_config.yaml", yamlAsString, 0666)
 }
